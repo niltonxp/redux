@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redux</title>
+
+  <script src="./redux.min.js"></script>
+</head>
+
+<body>
+  <div>
+    <h1>Total: <span id="total"></span></h1>
+    <button id="minus">-</button>
+    <button id="plus">+</button>
+
+    <button id="open">Abrir</button>
+    <button id="close">Fechar</button>
+  </div>
+
+  <script>
+    // Constantes
+    const INCREMENTAR = 'INCREMENTAR'
+    const DECREMENTAR = 'DECREMENTAR'
+
+    // Action creator
+    function incrementar() {
+      return { type: INCREMENTAR }
+    }
+    function decrementar(payload) {
+      return { type: DECREMENTAR }
+    }
+
+    const initialState = 0
+    function contador(state = initialState, action) {
+      switch (action.type) {
+        case INCREMENTAR:
+          return state + 1
+        case DECREMENTAR:
+          return state - 1
+        default:
+          return state
+      }
+    }
+
+    function modal(state = true, action) {
+      switch (action.type) {
+        case "ABRIR":
+          return true
+        case "FECHAR":
+          return false
+        default:
+          return state
+      }
+    }
+
+    const reducer = Redux.combineReducers({ contador, modal })
+    //Criando o store (getState - dispatch - ...)
+    const store = Redux.createStore(reducer);
+
+    function render() {
+      const { contador, modal } = store.getState()
+      const total = document.getElementById('total')
+      total.innerText = contador
+
+      if (modal) {
+        total.style.display = 'inline-block'
+      } else {
+        total.style.display = 'none'
+      }
+    }
+    render()
+
+    // Executa sempre que uma ação é disparada
+    store.subscribe(() => render())
+
+    const unsubscribe = store.subscribe(() => {
+      console.log('Retorno de um subscribe é uma função que se ativada impede sua execução');
+    })
+    unsubscribe()
+
+    const plus = document.getElementById('plus')
+    const minus = document.getElementById('minus')
+    const open = document.getElementById('open')
+    const close = document.getElementById('close')
+
+    plus.addEventListener('click', () => store.dispatch(incrementar()))
+    minus.addEventListener('click', () => store.dispatch(decrementar()))
+    open.addEventListener('click', () => store.dispatch({ type: "ABRIR" }))
+    close.addEventListener('click', () => store.dispatch({ type: "FECHAR" }))
+
+  </script>
+</body>
+
+</html>
