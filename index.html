@@ -13,59 +13,31 @@
 
 <body>
 
-  <script>
-    const initialState = {
-      nome: 'André',
-      sobre: {
-        dados: {
-          idade: 31,
-        },
-      },
+  <!-- index.html -->
+  <h1 id="total"></h1>
+  <button id="incrementar">+</button>
+  <button id="decrementar">-</button>
+
+
+  <script type="module">
+    import { incrementar, reduzir } from './store/contador.js';
+    import store from './store/configureStore.js';
+
+    function render() {
+      const { contador } = store.getState();
+      const total = document.getElementById('total');
+      total.innerText = contador;
     }
+    render();
+    store.subscribe(render);
 
-    // Não é necessário o default ou return
-    // O break trava o switch statement
-    const reducer = immer.produce((state, action) => {
-      switch (action.type) {
-        case 'MUDAR_NOME':
-          state.nome = action.payload;
-          break;
-        case 'MUDAR_IDADE':
-          state.sobre.dados.idade = action.payload;
-          break;
-      }
-    }, initialState);
+    const incrementarBtn = document.getElementById('incrementar');
+    const decrementarBtn = document.getElementById('decrementar');
 
-    // Sem o Immer
-    // const reducer = (state = initialState, action) => {
-    //   switch (action.type) {
-    //     case 'MUDAR_NOME':
-    //       return { ...state, nome: action.payload };
-    //     case 'MUDAR_IDADE':
-    //       return {
-    //         ...state,
-    //         sobre: {
-    //           ...state.sobre,
-    //           dados: {
-    //             ...state.sobre.dados,
-    //             idade: action.payload,
-    //           },
-    //         },
-    //       };
-    //     default:
-    //       return state;
-    //   }
-    // };
-
-    const store = Redux.createStore(reducer,
-      window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
-
-    store.dispatch({ type: "MUDAR_NOME", payload: "Ivan" })
-    store.dispatch({ type: "MUDAR_NOME", payload: "Silva" })
-    store.dispatch({ type: "MUDAR_IDADE", payload: 10 })
-    store.dispatch({ type: "MUDAR_IDADE", payload: 20 })
-
+    incrementarBtn.addEventListener('click', () => store.dispatch(incrementar()))
+    decrementarBtn.addEventListener('click', () => store.dispatch(reduzir()))
   </script>
+
 </body>
 
 </html>
