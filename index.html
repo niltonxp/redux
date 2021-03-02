@@ -14,28 +14,70 @@
 <body>
 
   <!-- index.html -->
-  <h1 id="total"></h1>
-  <button id="incrementar">+</button>
-  <button id="decrementar">-</button>
+  <div>
+    <label>Nome:</label>
+    <span id="nome"></span>
+  </div>
+  <div>
+    <label>Email:</label>
+    <span id="email"></span>
+  </div>
+  <div>
+    <label>Dias restantes:</label>
+    <span id="dias"></span>
+  </div>
+  <div>
+    <label>Aulas completas:</label>
+    <span id="aulas"></span>
+  </div>
 
+  <div>
+    <button id="incrementarTempoBtn">Incrementar tempo</button>
+    <button id="reduzirTempoBtn">Reduzir tempo</button>
+    <button id="modificarEmailBtn">Modificar email</button>
+  </div>
+  <div>
+    <button id="completarAulaBtn">Completar aula</button>
+    <button id="completarCursoBtn">Completar curso</button>
+    <button id="resetarCursoBtn">Resetar curso</button>
+  </div>
 
   <script type="module">
-    import { incrementar, reduzir } from './store/contador.js';
+    // Creators
+    import { incrementarTempo, reduzirTempo, modificarEmail } from './store/aluno.js';
+    import { completarAula, completarCurso, resetarCurso } from './store/aulas.js';
+
     import store from './store/configureStore.js';
 
+    const nome = document.getElementById('nome');
+    const email = document.getElementById('email');
+    const dias = document.getElementById('dias');
+    const aulasSpan = document.getElementById('aulas');
+
     function render() {
-      const { contador } = store.getState();
-      const total = document.getElementById('total');
-      total.innerText = contador;
+      const { aulas, aluno } = store.getState();
+
+      nome.innerHTML = aluno.nome
+      email.innerHTML = aluno.email
+      dias.innerHTML = `${aluno.diasRestantes} dias`
+      aulasSpan.innerHTML = aulas.reduce((total, aula) => aula.completa ? total += 1 : total, 0)
     }
     render();
     store.subscribe(render);
 
-    const incrementarBtn = document.getElementById('incrementar');
-    const decrementarBtn = document.getElementById('decrementar');
+    const incrementarTempoBtn = document.getElementById('incrementarTempoBtn');
+    const reduzirTempoBtn = document.getElementById('reduzirTempoBtn');
+    const modificarEmailBtn = document.getElementById('modificarEmailBtn');
+    const completarAulaBtn = document.getElementById('completarAulaBtn');
+    const completarCursoBtn = document.getElementById('completarCursoBtn');
+    const resetarCursoBtn = document.getElementById('resetarCursoBtn');
 
-    incrementarBtn.addEventListener('click', () => store.dispatch(incrementar()))
-    decrementarBtn.addEventListener('click', () => store.dispatch(reduzir()))
+    incrementarTempoBtn.addEventListener('click', () => store.dispatch(incrementarTempo()))
+    reduzirTempoBtn.addEventListener('click', () => store.dispatch(reduzirTempo()))
+    modificarEmailBtn.addEventListener('click', () => store.dispatch(modificarEmail("teste@teste.com")))
+    completarAulaBtn.addEventListener('click', () => store.dispatch(completarAula(3)))
+    completarCursoBtn.addEventListener('click', () => store.dispatch(completarCurso()))
+    resetarCursoBtn.addEventListener('click', () => store.dispatch(resetarCurso()))
   </script>
 
 </body>

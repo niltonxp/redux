@@ -1,7 +1,8 @@
 // configureStore.js
-import contador from "./contador.js";
+import aluno from "./aluno.js";
+import aulas from "./aulas.js";
 
-const reducer = Redux.combineReducers({ contador });
+const reducer = Redux.combineReducers({ aluno, aulas });
 
 const store = Redux.createStore(
   reducer,
