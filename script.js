@@ -1,41 +1,43 @@
-// O Middleware ocorre entre o momento que a ação é disparada e antes dela chegar ao reducer.
-// Ele é aplicado através da função Redux.applyMiddleware.
-
-function reducer(state = 0, action) {
+function reducer(state = { loading: false, data: null, error: null }, action) {
   switch (action.type) {
-    case "INCREMENTAR":
-      return state + 1;
-    case "REDUZIR":
-      return state - 1;
+    case "FETCH_STARTED":
+      return { ...state, loading: true };
+    case "FETCH_SUCCESS":
+      return { loading: false, data: action.payload, error: null };
+    case "FETCH_ERROR":
+      return { loading: false, error: action.payload, data: null };
     default:
       return state;
   }
 }
 
-const logger = (store) => (next) => (action) => {
-  console.group(action.type);
-  console.log("ACTION", action);
-  // store.getState antes de next(action), retorna o estado atual
-  console.log("PREV_STATE", store.getState());
-  const result = next(action);
-  // store.getState após next(action), retorna o estado posterior
-  console.log("NEW_STATE", store.getState());
-  console.groupEnd();
-  // temos sempre que retornar o resultado de next(action)
-  return result;
+// thunk
+const thunk = (store) => (next) => (action) => {
+  if (typeof action === "function") {
+    return action(store.dispatch, store.getState);
+  } else {
+    return next(action);
+  }
 };
 
-// Desestrutução das funções do Redux (não é necessário, podemos usar Redux.compose)
 const { compose, applyMiddleware } = Redux;
-// Verifica se __REDUX_DEVTOOLS_EXTENSION__COMPOSE__ existe, se nõa usa o compose puro.
+
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-// Aplica o Middleware com o compose
-const enhancer = composeEnhancers(applyMiddleware(logger));
-// Utiliza a devTools + middleware como enhancer da store
+const enhancer = composeEnhancers(applyMiddleware(thunk));
+
 const store = Redux.createStore(reducer, enhancer);
 
-store.dispatch({ type: "INCREMENTAR" });
-const action = store.dispatch({ type: "REDUZIR" });
-console.log(action);
+// Action Creator, retorna uma função ao invés de um objeto
+function fetchUrl(url) {
+  return async (dispatch) => {
+    try {
+      dispatch({ type: "FETCH_STARTED" });
+      const data = await fetch(url).then((r) => r.json());
+      dispatch({ type: "FETCH_SUCCESS", payload: data });
+    } catch (error) {
+      dispatch({ type: "FETCH_ERROR", payload: error.message });
+    }
+  };
+}
 
-// {type: 'INCREMENTAR'}, se não retornarmos nada no Middleware, aqui será undefined
+store.dispatch(fetchUrl("https://dogsapi.origamid.dev/json/api/photo"));
