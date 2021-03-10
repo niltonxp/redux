@@ -1,25 +1,41 @@
-function somar(a, b, c) {
-  return a + b + c;
+// O Middleware ocorre entre o momento que a ação é disparada e antes dela chegar ao reducer.
+// Ele é aplicado através da função Redux.applyMiddleware.
+
+function reducer(state = 0, action) {
+  switch (action.type) {
+    case "INCREMENTAR":
+      return state + 1;
+    case "REDUZIR":
+      return state - 1;
+    default:
+      return state;
+  }
 }
 
-console.log("Normal -> ", somar(2, 5, 10));
+const logger = (store) => (next) => (action) => {
+  console.group(action.type);
+  console.log("ACTION", action);
+  // store.getState antes de next(action), retorna o estado atual
+  console.log("PREV_STATE", store.getState());
+  const result = next(action);
+  // store.getState após next(action), retorna o estado posterior
+  console.log("NEW_STATE", store.getState());
+  console.groupEnd();
+  // temos sempre que retornar o resultado de next(action)
+  return result;
+};
 
-//Currying
-function somar_(a) {
-  return (b) => {
-    return (c) => {
-      return a + b + c;
-    };
-  };
-}
-// ou const somar_ = a => b => c => a + b + c;
-console.log("Currying ->", somar_(2)(5)(10));
+// Desestrutução das funções do Redux (não é necessário, podemos usar Redux.compose)
+const { compose, applyMiddleware } = Redux;
+// Verifica se __REDUX_DEVTOOLS_EXTENSION__COMPOSE__ existe, se nõa usa o compose puro.
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+// Aplica o Middleware com o compose
+const enhancer = composeEnhancers(applyMiddleware(logger));
+// Utiliza a devTools + middleware como enhancer da store
+const store = Redux.createStore(reducer, enhancer);
 
-const getElementAttr = (attr) => (element) => element.getAttribute(attr);
-const getAttrDataSlide = getElementAttr("data-slide");
-const getAttrId = getElementAttr("id");
+store.dispatch({ type: "INCREMENTAR" });
+const action = store.dispatch({ type: "REDUZIR" });
+console.log(action);
 
-const li = Array.from(document.querySelectorAll("li"));
-
-const dataSlideList = li.map(getAttrDataSlide); // ['1', '2', '3', '4'];
-const idList = li.map(getAttrId); // ['item1', 'item2', 'item3', 'item4'];
+// {type: 'INCREMENTAR'}, se não retornarmos nada no Middleware, aqui será undefined
