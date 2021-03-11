@@ -1,42 +1,17 @@
-function getLocalStorage(key, initial) {
-  try {
-    return JSON.parse(window.localStorage.getItem(key));
-  } catch (error) {
-    return initial;
+import store from "./store/configureStore.js";
+import { tokenFetch } from "./store/token.js";
+import { userFetch } from "./store/user.js";
+
+async function login(user) {
+  let state = store.getState();
+
+  if (state.token.data === null) {
+    await store.dispatch(tokenFetch(user));
+
+    state = store.getState();
   }
+
+  await store.dispatch(userFetch(state.token.data));
 }
 
-const initialState = {
-  token: getLocalStorage("token", null),
-};
-
-function reducer(state = initialState, action) {
-  switch (action.type) {
-    case "SET_TOKEN":
-      return { token: action.payload };
-    default:
-      return state;
-  }
-}
-
-// middleware
-const localStorage = (store) => (next) => (action) => {
-  const response = next(action);
-  if (action.localStorage !== undefined)
-    window.localStorage.setItem(
-      action.localStorage,
-      JSON.stringify(action.payload)
-    );
-  return response;
-};
-
-const { compose, applyMiddleware } = Redux;
-const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-const enhancer = composeEnhancers(applyMiddleware(localStorage));
-const store = Redux.createStore(reducer, enhancer);
-
-store.dispatch({
-  type: "SET_TOKEN",
-  payload: "xxxx-xxxx",
-  localStorage: "token",
-});
+login({ username: "dog", password: "dog" });
